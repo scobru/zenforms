@@ -507,12 +507,12 @@
         <i class="ti ti-forms"></i>
       </div>
       <h2 class="auth-title">ZenForms Vault</h2>
-      <p class="auth-sub">Enter your master passphrase to unlock end-to-end encrypted form data & responses.</p>
+      <p class="auth-sub">Enter credentials to unlock & sync E2EE forms & polls via ZEN P2P graph.</p>
       <form id="authForm" style="display:flex; flex-direction:column; gap:16px;">
-        <input type="password" id="passphraseInput" class="input-field" placeholder="Enter passphrase..." required
-          autofocus>
+        <input type="text" id="user-input" class="input-field" placeholder="Username..." required autofocus>
+        <input type="password" id="pass-input" class="input-field" placeholder="Passphrase..." required>
         <button type="submit" class="btn btn-primary" style="justify-content: center; width:100%;">
-          <i class="ti ti-lock-open"></i> Unlock Vault
+          <i class="ti ti-lock-open"></i> Unlock & Sync Vault
         </button>
       </form>
     </div>
@@ -526,7 +526,7 @@
       </div>
       <div>
         <div class="brand-text">ZenForms</div>
-        <span class="brand-badge">E2EE P2P</span>
+        <span class="brand-badge">ZEN P2P</span>
       </div>
     </a>
 
@@ -538,113 +538,100 @@
       </li>
       <li>
         <button class="nav-btn" data-tab="polls">
-          <i class="ti ti-chart-bar"></i> Quick Polls
-        </button>
-      </li>
-      <li>
-        <button class="nav-btn" data-tab="respondent">
-          <i class="ti ti-pencil"></i> Respondent View
-        </button>
-      </li>
-      <li>
-        <button class="nav-btn" data-tab="analytics">
-          <i class="ti ti-chart-donut"></i> Response Vault
+          <i class="ti ti-chart-bar"></i> Live Polls
         </button>
       </li>
     </ul>
 
     <div class="sidebar-footer">
       <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
-        v1.0.0 • E2EE
+        v1.0.0 • ZEN P2P
       </span>
-      <button class="theme-toggle" id="themeBtn" title="Toggle Light/Dark Theme">
+      <button class="theme-toggle" id="themeBtn" title="Toggle Theme">
         <i class="ti ti-moon" id="themeIcon"></i>
       </button>
     </div>
   </nav>
 
-  <!-- Main Content Area -->
+  <!-- Main Content -->
   <main class="app-main">
     <header class="topbar">
       <h1 class="topbar-title" id="topbarTitle">
         <i class="ti ti-file-text"></i> My Forms
       </h1>
-      <div id="topbarActions">
-        <button class="btn btn-primary" id="createNewBtn">
-          <i class="ti ti-plus"></i> Create Form
-        </button>
-      </div>
+      <div id="topbarActions" style="display:flex; gap:10px;"></div>
     </header>
 
     <div class="content-area">
 
-      <!-- View 1: Forms Manager -->
+      <!-- View 1: Forms List -->
       <section id="viewForms">
         <div class="grid-cards" id="formsGrid">
-          <!-- Dynamic Forms injected via JS -->
+          <!-- Forms injected dynamically -->
         </div>
       </section>
 
-      <!-- View 2: Quick Polls Manager -->
+      <!-- View 2: Polls List -->
       <section id="viewPolls" style="display: none;">
         <div class="grid-cards" id="pollsGrid">
-          <!-- Dynamic Polls injected via JS -->
+          <!-- Polls injected dynamically -->
         </div>
       </section>
 
-      <!-- View 3: Respondent View (Public Form/Poll Filler) -->
+      <!-- View 3: Respondent View (Public / Shared Form) -->
       <section id="viewRespondent" style="display: none;">
-        <div class="respondent-container" id="respondentArea">
-          <!-- Dynamic Form or Poll render -->
+        <div class="respondent-container" id="respondentCard">
+          <!-- Dynamic Form/Poll Renderer -->
         </div>
       </section>
 
-      <!-- View 4: Response Vault & Analytics -->
+      <!-- View 4: Analytics View -->
       <section id="viewAnalytics" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <div>
-            <h2 style="font-size: 1.3rem; font-weight: 700;">Decrypted Response Vault</h2>
-            <p style="font-size: 0.9rem; color: var(--text-muted);">Encrypted submissions stored locally via Zen graph engine</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-secondary" onclick="exportData('csv')">
-              <i class="ti ti-download"></i> Export CSV
-            </button>
-            <button class="btn btn-secondary" onclick="exportData('json')">
-              <i class="ti ti-code"></i> Export JSON
-            </button>
-          </div>
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <button class="btn btn-secondary" onclick="window.switchTab('forms')">
+            <i class="ti ti-arrow-left"></i> Back to Forms
+          </button>
+          <button class="btn btn-secondary" onclick="window.exportAnalyticsCSV()">
+            <i class="ti ti-download"></i> Export CSV
+          </button>
         </div>
 
-        <div id="analyticsList" style="display: flex; flex-direction: column; gap: 16px;">
-          <!-- Injected Analytics -->
+        <div class="analytics-card" id="analyticsContent">
+          <!-- Analytics stats & charts injected -->
         </div>
       </section>
 
-      <!-- View 5: Form Builder View -->
+      <!-- View 5: Form Builder -->
       <section id="viewBuilder" style="display: none;">
-        <div class="builder-container">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <button class="btn btn-secondary" onclick="switchTab('forms')">
-              <i class="ti ti-arrow-left"></i> Back to Forms
-            </button>
-            <button class="btn btn-primary" onclick="saveCurrentForm()">
-              <i class="ti ti-check"></i> Save & Publish Form
-            </button>
-          </div>
-
-          <div class="card">
-            <input type="text" id="builderTitle" class="input-field" placeholder="Form Title (e.g. User Feedback Survey)" style="font-size: 1.3rem; font-weight: 700;">
-            <textarea id="builderDesc" class="input-field" placeholder="Form description or instructions..." rows="2"></textarea>
-          </div>
-
-          <div id="builderFields" style="display: flex; flex-direction: column; gap: 16px;">
-            <!-- Fields dynamically added -->
-          </div>
-
-          <button class="btn btn-secondary" onclick="addFieldToBuilder()" style="justify-content: center; padding: 14px;">
-            <i class="ti ti-plus"></i> Add Question / Field
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <button class="btn btn-secondary" onclick="window.switchTab('forms')">
+            <i class="ti ti-arrow-left"></i> Cancel
           </button>
+          <button class="btn btn-primary" onclick="window.saveFormFromBuilder()">
+            <i class="ti ti-check"></i> Save & Publish Form
+          </button>
+        </div>
+
+        <div class="builder-container">
+          <input type="text" id="builderTitle" class="input-field" placeholder="Form Title..." style="font-size:1.4rem; font-weight:700;">
+          <textarea id="builderDesc" class="input-field" placeholder="Form Description or Instructions..." style="min-height:70px;"></textarea>
+
+          <h3 style="font-size: 1.1rem; font-weight: 600; margin-top: 10px;">Form Fields</h3>
+          <div id="builderFields" style="display:flex; flex-direction:column; gap:16px;">
+            <!-- Fields list -->
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn btn-secondary" onclick="window.addFieldToBuilder('text')">
+              <i class="ti ti-plus"></i> Short Text Field
+            </button>
+            <button class="btn btn-secondary" onclick="window.addFieldToBuilder('rating')">
+              <i class="ti ti-star"></i> Rating Field
+            </button>
+            <button class="btn btn-secondary" onclick="window.addFieldToBuilder('radio')">
+              <i class="ti ti-list-check"></i> Multiple Choice
+            </button>
+          </div>
         </div>
       </section>
 
@@ -657,15 +644,24 @@
     <span id="toastMsg">Action completed successfully</span>
   </div>
 
-  <script>
+  <script type="module">
+    import ZEN from 'https://cdn.jsdelivr.net/gh/scobru/zen@main/zen.min.js';
+
+    let zen;
+    let pair;
+    let formsMap = {};
+
+    const relays = ["wss://delay.scobrudot.dev/zen", "wss://zen.akao.io:8420/zen"];
+    zen = new ZEN({ peers: relays });
+
     // State management
     const AppState = {
       theme: localStorage.getItem('zenforms_theme') || 'light',
       locked: true,
       activeTab: 'forms',
-      forms: JSON.parse(localStorage.getItem('zenforms_data') || '[]'),
-      polls: JSON.parse(localStorage.getItem('zenforms_polls') || '[]'),
-      responses: JSON.parse(localStorage.getItem('zenforms_responses') || '{}'),
+      forms: [],
+      polls: [],
+      responses: {},
       currentBuilder: {
         id: null,
         title: '',
@@ -673,43 +669,6 @@
         fields: []
       }
     };
-
-    // Initial Mock Data if empty
-    if (AppState.forms.length === 0) {
-      AppState.forms = [
-        {
-          id: 'form-1',
-          title: 'Product Satisfaction Survey',
-          description: 'Help us improve the Zen ecosystem by answering 3 quick questions.',
-          createdAt: new Date().toISOString(),
-          fields: [
-            { id: 'q1', type: 'text', label: 'What is your primary use case for Zen app?', required: true },
-            { id: 'q2', type: 'rating', label: 'How satisfied are you with E2EE performance?', required: true },
-            { id: 'q3', type: 'radio', label: 'Would you recommend ZenForms to your team?', options: ['Yes, definitely', 'Maybe', 'No'], required: false }
-          ]
-        }
-      ];
-      AppState.polls = [
-        {
-          id: 'poll-1',
-          title: 'Which Zen App do you use most frequently?',
-          options: ['ZenBoard (Notes)', 'ZenCal (Calendar)', 'ZenAuth (2FA)', 'ZenKanban (Tasks)'],
-          votes: [12, 8, 15, 5],
-          createdAt: new Date().toISOString()
-        }
-      ];
-      AppState.responses['form-1'] = [
-        { q1: 'Decentralized note taking and task management', q2: '5 Stars', q3: 'Yes, definitely' },
-        { q1: 'Secure 2FA authentication', q2: '4 Stars', q3: 'Yes, definitely' }
-      ];
-      saveState();
-    }
-
-    function saveState() {
-      localStorage.setItem('zenforms_data', JSON.stringify(AppState.forms));
-      localStorage.setItem('zenforms_polls', JSON.stringify(AppState.polls));
-      localStorage.setItem('zenforms_responses', JSON.stringify(AppState.responses));
-    }
 
     // Theme setup
     document.documentElement.setAttribute('data-theme', AppState.theme);
@@ -727,15 +686,74 @@
       icon.className = AppState.theme === 'light' ? 'ti ti-moon' : 'ti ti-sun';
     }
 
-    // Auth Unlock
-    document.getElementById('authForm').addEventListener('submit', (e) => {
+    // Auth Unlock & ZEN Login
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      AppState.locked = false;
-      document.getElementById('authOverlay').style.fadeOut = true;
-      document.getElementById('authOverlay').style.display = 'none';
-      renderView();
-      showToast('Vault unlocked with E2EE key');
+      await login();
     });
+
+    async function login() {
+      const u = document.getElementById('user-input').value || sessionStorage.getItem('zenforms_user');
+      const p = document.getElementById('pass-input').value || sessionStorage.getItem('zenforms_pass');
+      if (!u || !p) return;
+
+      pair = await ZEN.pair(null, { seed: u + p });
+      sessionStorage.setItem('zenforms_user', u);
+      sessionStorage.setItem('zenforms_pass', p);
+      AppState.locked = false;
+      document.getElementById('authOverlay').style.display = 'none';
+
+      // Subscribe to user's zenforms node
+      zen.get('~' + pair.pub).get('zenforms').map().on((data, soul) => {
+        if (!data) {
+          delete formsMap[soul];
+        } else {
+          try {
+            formsMap[soul] = {
+              soul,
+              id: data.id || soul,
+              title: data.title || 'Untitled Form',
+              description: data.description || '',
+              fields: typeof data.fields === 'string' ? JSON.parse(data.fields) : (data.fields || []),
+              createdAt: data.createdAt || new Date().toISOString()
+            };
+          } catch (err) {
+            console.error('Error parsing ZEN form data:', err);
+          }
+        }
+        syncFormsFromMap();
+      });
+
+      showToast('Connected to ZEN P2P network');
+    }
+
+    function syncFormsFromMap() {
+      AppState.forms = Object.values(formsMap).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+      if (AppState.forms.length === 0) {
+        initDefaultForm();
+        return;
+      }
+
+      renderView();
+    }
+
+    function initDefaultForm() {
+      const defaultId = 'form_' + Date.now();
+      const defaultForm = {
+        id: defaultId,
+        title: 'Product Satisfaction Survey',
+        description: 'Help us improve the Zen ecosystem by answering 3 quick questions.',
+        createdAt: new Date().toISOString(),
+        fields: JSON.stringify([
+          { id: 'q1', type: 'text', label: 'What is your primary use case for Zen app?', required: true },
+          { id: 'q2', type: 'rating', label: 'How satisfied are you with E2EE performance?', required: true },
+          { id: 'q3', type: 'radio', label: 'Would you recommend ZenForms to your team?', options: ['Yes, definitely', 'Maybe', 'No'], required: false }
+        ])
+      };
+
+      zen.get('~' + pair.pub).get('zenforms').get(defaultId).put(defaultForm, null, { authenticator: pair });
+    }
 
     // Navigation Tabs
     document.querySelectorAll('.nav-btn').forEach(btn => {
