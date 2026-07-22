@@ -495,6 +495,16 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .spin {
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
   </style>
 </head>
 
@@ -509,8 +519,8 @@
       <h2 class="auth-title">ZenForms Vault</h2>
       <p class="auth-sub">Enter credentials to unlock & sync E2EE forms & polls via ZEN P2P graph.</p>
       <form id="authForm" style="display:flex; flex-direction:column; gap:16px;">
-        <input type="text" id="user-input" class="input-field" placeholder="Username..." required autofocus>
-        <input type="password" id="pass-input" class="input-field" placeholder="Passphrase..." required>
+        <input type="text" id="user-input" class="input-field" placeholder="Username..." required autofocus autocomplete="username">
+        <input type="password" id="pass-input" class="input-field" placeholder="Passphrase..." required autocomplete="current-password">
         <button type="submit" class="btn btn-primary" style="justify-content: center; width:100%;">
           <i class="ti ti-lock-open"></i> Unlock & Sync Vault
         </button>
@@ -694,7 +704,20 @@
     // Auth Unlock & ZEN Login
     document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      await login();
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ti ti-loader spin"></i> Unlocking vault...';
+      }
+      await new Promise(r => setTimeout(r, 50));
+      try {
+        await login();
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="ti ti-lock-open"></i> Unlock & Sync Vault';
+        }
+      }
     });
 
     async function login() {
@@ -1101,7 +1124,7 @@
           options: JSON.stringify(newPoll.options),
           votes: JSON.stringify(newPoll.votes),
           createdAt: newPoll.createdAt
-        });
+        }, null, { authenticator: pair });
       }
 
       showToast('Poll created');
@@ -1183,7 +1206,7 @@
             id: respId,
             formId: formId,
             data: JSON.stringify(responseObj)
-          });
+          }, null, { authenticator: pair });
         }
 
         area.innerHTML = `
@@ -1227,7 +1250,7 @@
             options: JSON.stringify(poll.options),
             votes: JSON.stringify(poll.votes),
             createdAt: poll.createdAt
-          });
+          }, null, { authenticator: pair });
         }
         window.switchTab('polls');
         showToast('Vote recorded on Zen graph');
