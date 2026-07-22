@@ -759,45 +759,46 @@
     document.querySelectorAll('.nav-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-        switchTab(tab);
+        window.switchTab(tab);
       });
     });
 
-    function switchTab(tab) {
+    window.switchTab = function(tab) {
       AppState.activeTab = tab;
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
       if (activeBtn) activeBtn.classList.add('active');
 
-      // Hide all views
       ['viewForms', 'viewPolls', 'viewRespondent', 'viewAnalytics', 'viewBuilder'].forEach(v => {
-        document.getElementById(v).style.display = 'none';
+        const elem = document.getElementById(v);
+        if (elem) elem.style.display = 'none';
       });
 
       const topbarActions = document.getElementById('topbarActions');
-
-      if (tab === 'forms') {
-        document.getElementById('viewForms').style.display = 'block';
-        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-file-text"></i> My Forms';
-        topbarActions.innerHTML = `<button class="btn btn-primary" onclick="openFormBuilder()"><i class="ti ti-plus"></i> Create Form</button>`;
-      } else if (tab === 'polls') {
-        document.getElementById('viewPolls').style.display = 'block';
-        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-chart-bar"></i> Quick Polls';
-        topbarActions.innerHTML = `<button class="btn btn-primary" onclick="createNewPoll()"><i class="ti ti-plus"></i> New Poll</button>`;
-      } else if (tab === 'respondent') {
-        document.getElementById('viewRespondent').style.display = 'block';
-        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-pencil"></i> Respondent View';
-        topbarActions.innerHTML = '';
-        renderRespondentView();
-      } else if (tab === 'analytics') {
-        document.getElementById('viewAnalytics').style.display = 'block';
-        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-chart-donut"></i> Response Vault';
-        topbarActions.innerHTML = '';
-        renderAnalytics();
+      if (topbarActions) {
+        if (tab === 'forms') {
+          document.getElementById('viewForms').style.display = 'block';
+          document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-file-text"></i> My Forms';
+          topbarActions.innerHTML = `<button class="btn btn-primary" onclick="window.openFormBuilder()"><i class="ti ti-plus"></i> Create Form</button>`;
+        } else if (tab === 'polls') {
+          document.getElementById('viewPolls').style.display = 'block';
+          document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-chart-bar"></i> Quick Polls';
+          topbarActions.innerHTML = `<button class="btn btn-primary" onclick="window.createNewPoll()"><i class="ti ti-plus"></i> New Poll</button>`;
+        } else if (tab === 'respondent') {
+          document.getElementById('viewRespondent').style.display = 'block';
+          document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-pencil"></i> Respondent View';
+          topbarActions.innerHTML = '';
+          renderRespondentView();
+        } else if (tab === 'analytics') {
+          document.getElementById('viewAnalytics').style.display = 'block';
+          document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-chart-donut"></i> Response Vault';
+          topbarActions.innerHTML = '';
+          renderAnalytics();
+        }
       }
 
       renderView();
-    }
+    };
 
     function renderView() {
       if (AppState.activeTab === 'forms') renderForms();
@@ -899,7 +900,7 @@
     }
 
     // Form Builder Logic
-    function openFormBuilder(formId = null) {
+    window.openFormBuilder = function(formId = null) {
       document.querySelectorAll('section').forEach(s => s.style.display = 'none');
       document.getElementById('viewBuilder').style.display = 'block';
 
@@ -920,27 +921,28 @@
       document.getElementById('builderTitle').value = AppState.currentBuilder.title;
       document.getElementById('builderDesc').value = AppState.currentBuilder.description;
       renderBuilderFields();
-    }
+    };
 
     function renderBuilderFields() {
       const container = document.getElementById('builderFields');
+      if (!container) return;
       container.innerHTML = AppState.currentBuilder.fields.map((field, idx) => `
         <div class="field-card">
           <div class="field-card-header">
             <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">Question ${idx + 1}</span>
-            <button class="btn btn-danger" style="padding: 4px 8px;" onclick="removeFieldFromBuilder(${idx})">
+            <button class="btn btn-danger" style="padding: 4px 8px;" onclick="window.removeFieldFromBuilder(${idx})">
               <i class="ti ti-x"></i>
             </button>
           </div>
-          <input type="text" class="input-field" value="${escapeHtml(field.label)}" onchange="updateFieldLabel(${idx}, this.value)" placeholder="Enter question label...">
+          <input type="text" class="input-field" value="${escapeHtml(field.label)}" onchange="window.updateFieldLabel(${idx}, this.value)" placeholder="Enter question label...">
           <div style="display: flex; gap: 12px; align-items: center;">
-            <select class="input-field" style="width: 200px;" onchange="updateFieldType(${idx}, this.value)">
+            <select class="input-field" style="width: 200px;" onchange="window.updateFieldType(${idx}, this.value)">
               <option value="text" ${field.type === 'text' ? 'selected' : ''}>Short Text</option>
               <option value="radio" ${field.type === 'radio' ? 'selected' : ''}>Multiple Choice</option>
               <option value="rating" ${field.type === 'rating' ? 'selected' : ''}>Star Rating</option>
             </select>
             <label style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer;">
-              <input type="checkbox" ${field.required ? 'checked' : ''} onchange="updateFieldRequired(${idx}, this.checked)"> Required
+              <input type="checkbox" ${field.required ? 'checked' : ''} onchange="window.updateFieldRequired(${idx}, this.checked)"> Required
             </label>
           </div>
           ${field.type === 'radio' ? `
@@ -948,10 +950,10 @@
               <span style="font-size: 0.85rem; font-weight: 600;">Options:</span>
               ${(field.options || ['Option 1', 'Option 2']).map((opt, oIdx) => `
                 <div class="option-row">
-                  <input type="text" class="input-field" value="${escapeHtml(opt)}" onchange="updateFieldOption(${idx}, ${oIdx}, this.value)">
+                  <input type="text" class="input-field" value="${escapeHtml(opt)}" onchange="window.updateFieldOption(${idx}, ${oIdx}, this.value)">
                 </div>
               `).join('')}
-              <button class="btn btn-secondary" style="margin-top: 8px; padding: 4px 10px; font-size: 0.8rem;" onclick="addOptionToField(${idx})">
+              <button class="btn btn-secondary" style="margin-top: 8px; padding: 4px 10px; font-size: 0.8rem;" onclick="window.addOptionToField(${idx})">
                 + Add Option
               </button>
             </div>
@@ -960,7 +962,7 @@
       `).join('');
     }
 
-    function addFieldToBuilder() {
+    window.addFieldToBuilder = function() {
       AppState.currentBuilder.fields.push({
         id: 'q' + Date.now(),
         type: 'text',
@@ -968,56 +970,64 @@
         required: false
       });
       renderBuilderFields();
-    }
+    };
 
-    function removeFieldFromBuilder(idx) {
+    window.removeFieldFromBuilder = function(idx) {
       AppState.currentBuilder.fields.splice(idx, 1);
       renderBuilderFields();
-    }
+    };
 
-    function updateFieldLabel(idx, val) { AppState.currentBuilder.fields[idx].label = val; }
-    function updateFieldType(idx, val) {
+    window.updateFieldLabel = function(idx, val) { AppState.currentBuilder.fields[idx].label = val; };
+    window.updateFieldType = function(idx, val) {
       AppState.currentBuilder.fields[idx].type = val;
       if (val === 'radio' && !AppState.currentBuilder.fields[idx].options) {
         AppState.currentBuilder.fields[idx].options = ['Option 1', 'Option 2'];
       }
       renderBuilderFields();
-    }
-    function updateFieldRequired(idx, val) { AppState.currentBuilder.fields[idx].required = val; }
-    function updateFieldOption(idx, oIdx, val) { AppState.currentBuilder.fields[idx].options[oIdx] = val; }
-    function addOptionToField(idx) {
+    };
+    window.updateFieldRequired = function(idx, val) { AppState.currentBuilder.fields[idx].required = val; };
+    window.updateFieldOption = function(idx, oIdx, val) { AppState.currentBuilder.fields[idx].options[oIdx] = val; };
+    window.addOptionToField = function(idx) {
       AppState.currentBuilder.fields[idx].options.push('Option ' + (AppState.currentBuilder.fields[idx].options.length + 1));
       renderBuilderFields();
-    }
+    };
 
-    function saveCurrentForm() {
+    window.saveCurrentForm = function() {
       AppState.currentBuilder.title = document.getElementById('builderTitle').value.trim() || 'Untitled Form';
       AppState.currentBuilder.description = document.getElementById('builderDesc').value.trim();
 
-      const existingIndex = AppState.forms.findIndex(f => f.id === AppState.currentBuilder.id);
-      if (existingIndex >= 0) {
-        AppState.forms[existingIndex] = AppState.currentBuilder;
-      } else {
-        AppState.forms.unshift(AppState.currentBuilder);
+      const formId = AppState.currentBuilder.id;
+      const record = {
+        id: formId,
+        title: AppState.currentBuilder.title,
+        description: AppState.currentBuilder.description,
+        fields: JSON.stringify(AppState.currentBuilder.fields),
+        createdAt: new Date().toISOString()
+      };
+
+      if (pair) {
+        zen.get('~' + pair.pub).get('zenforms').get(formId).put(record, (ack) => {
+          if (!ack.err) showToast('Form saved & synced to ZEN');
+        }, { authenticator: pair });
       }
 
-      saveState();
-      switchTab('forms');
-      showToast('Form saved and encrypted');
-    }
+      window.switchTab('forms');
+    };
 
-    function deleteForm(id) {
+    window.saveFormFromBuilder = window.saveCurrentForm;
+
+    window.deleteForm = function(id) {
       if (confirm('Are you sure you want to delete this form?')) {
-        AppState.forms = AppState.forms.filter(f => f.id !== id);
-        delete AppState.responses[id];
-        saveState();
-        renderForms();
-        showToast('Form deleted');
+        if (pair) {
+          zen.get('~' + pair.pub).get('zenforms').get(id).put(null, (ack) => {
+            if (!ack.err) showToast('Form deleted from ZEN graph');
+          }, { authenticator: pair });
+        }
       }
-    }
+    };
 
     // Quick Poll Creation
-    function createNewPoll() {
+    window.createNewPoll = function() {
       const question = prompt('Enter your poll question:');
       if (!question) return;
 
@@ -1030,37 +1040,36 @@
       };
 
       AppState.polls.unshift(newPoll);
-      saveState();
       renderPolls();
       showToast('Poll created');
-    }
+    };
 
-    function deletePoll(id) {
+    window.deletePoll = function(id) {
       if (confirm('Delete this poll?')) {
         AppState.polls = AppState.polls.filter(p => p.id !== id);
-        saveState();
         renderPolls();
         showToast('Poll deleted');
       }
-    }
+    };
 
     // Respondent View Logic
     function renderRespondentView() {
-      const area = document.getElementById('respondentArea');
+      const area = document.getElementById('respondentCard') || document.getElementById('respondentArea');
+      if (!area) return;
       if (AppState.forms.length === 0 && AppState.polls.length === 0) {
         area.innerHTML = `<div class="empty-state">No active forms or polls available.</div>`;
         return;
       }
-      openRespondentForm(AppState.forms[0]?.id);
+      window.openRespondentForm(AppState.forms[0]?.id);
     }
 
-    function openRespondentForm(formId) {
-      switchTab('respondent');
+    window.openRespondentForm = function(formId) {
+      window.switchTab('respondent');
       const form = AppState.forms.find(f => f.id === formId);
-      const area = document.getElementById('respondentArea');
+      const area = document.getElementById('respondentCard') || document.getElementById('respondentArea');
 
-      if (!form) {
-        area.innerHTML = `<div class="empty-state">Form not found.</div>`;
+      if (!form || !area) {
+        if (area) area.innerHTML = `<div class="empty-state">Form not found.</div>`;
         return;
       }
 
@@ -1108,7 +1117,6 @@
 
         if (!AppState.responses[formId]) AppState.responses[formId] = [];
         AppState.responses[formId].push(responseObj);
-        saveState();
 
         area.innerHTML = `
           <div style="text-align:center; padding: 40px 20px;">
@@ -1119,38 +1127,40 @@
         `;
         showToast('Response encrypted & sent');
       });
-    }
+    };
 
-    function openRespondentPoll(pollId) {
-      switchTab('respondent');
+    window.openRespondentPoll = function(pollId) {
+      window.switchTab('respondent');
       const poll = AppState.polls.find(p => p.id === pollId);
-      const area = document.getElementById('respondentArea');
+      const area = document.getElementById('respondentCard') || document.getElementById('respondentArea');
+
+      if (!poll || !area) return;
 
       area.innerHTML = `
         <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">${escapeHtml(poll.title)}</h2>
         <div style="display:flex; flex-direction:column; gap:12px;">
           ${poll.options.map((opt, i) => `
-            <button class="btn btn-secondary" style="justify-content:flex-start; padding:14px;" onclick="castVote('${poll.id}', ${i})">
+            <button class="btn btn-secondary" style="justify-content:flex-start; padding:14px;" onclick="window.castVote('${poll.id}', ${i})">
               <i class="ti ti-circle-dot"></i> ${escapeHtml(opt)}
             </button>
           `).join('')}
         </div>
       `;
-    }
+    };
 
-    function castVote(pollId, optIdx) {
+    window.castVote = function(pollId, optIdx) {
       const poll = AppState.polls.find(p => p.id === pollId);
       if (poll) {
         poll.votes[optIdx] = (poll.votes[optIdx] || 0) + 1;
-        saveState();
-        switchTab('polls');
+        window.switchTab('polls');
         showToast('Vote recorded on Zen graph');
       }
-    }
+    };
 
     // Render Analytics
     function renderAnalytics() {
-      const container = document.getElementById('analyticsList');
+      const container = document.getElementById('analyticsContent') || document.getElementById('analyticsList');
+      if (!container) return;
       container.innerHTML = AppState.forms.map(form => {
         const resps = AppState.responses[form.id] || [];
         return `
@@ -1174,13 +1184,13 @@
     }
 
     // Share & Export Helpers
-    function shareItem(id) {
-      const url = window.location.origin + window.location.pathname + '#' + id;
+    window.shareItem = function(id) {
+      const url = window.location.origin + window.location.pathname + '#form=' + id;
       navigator.clipboard.writeText(url);
       showToast('Encrypted share link copied to clipboard!');
-    }
+    };
 
-    function exportData(type) {
+    window.exportData = function(type) {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AppState.responses));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -1189,7 +1199,9 @@
       downloadAnchor.click();
       downloadAnchor.remove();
       showToast(`Exported responses as ${type.toUpperCase()}`);
-    }
+    };
+
+    window.exportAnalyticsCSV = window.exportData;
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
