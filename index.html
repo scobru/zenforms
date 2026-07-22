@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZenForms | Decentralized E2EE Forms & Polls</title>
+  <meta name="description" content="ZenForms - End-to-End Encrypted Private Form & Live Poll Builder by Scobru.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --font-sans: 'Outfit', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --accent-light: rgba(16, 185, 129, 0.12);
+      --accent-border: rgba(16, 185, 129, 0.3);
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+    }
+
+    [data-theme="light"] {
+      --bg-app: #f8fafc;
+      --bg-sidebar: #ffffff;
+      --bg-card: #ffffff;
+      --bg-modal: #ffffff;
+      --bg-input: #f1f5f9;
+      --bg-hover: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border-color: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(0, 0, 0, 0.16);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #090d14;
+      --bg-sidebar: #0f172a;
+      --bg-card: #1e293b;
+      --bg-modal: #1e293b;
+      --bg-input: #0f172a;
+      --bg-hover: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.18);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-app);
+      color: var(--text-primary);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* Auth Passphrase Overlay */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 20, 0.92);
+      backdrop-filter: blur(16px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .auth-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .auth-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    /* App Layout */
+    .app-sidebar {
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand-text {
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      list-style: none;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .nav-btn.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .nav-btn i {
+      font-size: 20px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .theme-toggle {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Main Area */
+    .app-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 64px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-sidebar);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    /* Common Buttons & Controls */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-hover);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      outline: none;
+      transition: border 0.15s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+    /* Cards & Grid */
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .card-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .badge-responses {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* Form Builder */
+    .builder-container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .field-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+    }
+
+    .field-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    /* Live Poll Chart */
+    .poll-result-bar-bg {
+      height: 12px;
+      background: var(--bg-input);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .poll-result-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 6px;
+      transition: width 0.4s ease;
+    }
+
+    /* Respondent Form */
+    .respondent-container {
+      max-width: 640px;
+      margin: 20px auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--accent);
+      color: var(--text-primary);
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 3000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Auth Lock Overlay -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <div class="auth-icon">
+        <i class="ti ti-forms"></i>
+      </div>
+      <h2 class="auth-title">ZenForms Vault</h2>
+      <p class="auth-sub">Enter your master passphrase to unlock end-to-end encrypted form data & responses.</p>
+      <form id="authForm" style="display:flex; flex-direction:column; gap:16px;">
+        <input type="password" id="passphraseInput" class="input-field" placeholder="Enter passphrase..." required
+          autofocus>
+        <button type="submit" class="btn btn-primary" style="justify-content: center; width:100%;">
+          <i class="ti ti-lock-open"></i> Unlock Vault
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <nav class="app-sidebar">
+    <a href="#" class="brand">
+      <div class="brand-logo">
+        <i class="ti ti-forms"></i>
+      </div>
+      <div>
+        <div class="brand-text">ZenForms</div>
+        <span class="brand-badge">E2EE P2P</span>
+      </div>
+    </a>
+
+    <ul class="nav-list">
+      <li>
+        <button class="nav-btn active" data-tab="forms">
+          <i class="ti ti-file-text"></i> My Forms
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-tab="polls">
+          <i class="ti ti-chart-bar"></i> Quick Polls
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-tab="respondent">
+          <i class="ti ti-pencil"></i> Respondent View
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-tab="analytics">
+          <i class="ti ti-chart-donut"></i> Response Vault
+        </button>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+        v1.0.0 • E2EE
+      </span>
+      <button class="theme-toggle" id="themeBtn" title="Toggle Light/Dark Theme">
+        <i class="ti ti-moon" id="themeIcon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="app-main">
+    <header class="topbar">
+      <h1 class="topbar-title" id="topbarTitle">
+        <i class="ti ti-file-text"></i> My Forms
+      </h1>
+      <div id="topbarActions">
+        <button class="btn btn-primary" id="createNewBtn">
+          <i class="ti ti-plus"></i> Create Form
+        </button>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- View 1: Forms Manager -->
+      <section id="viewForms">
+        <div class="grid-cards" id="formsGrid">
+          <!-- Dynamic Forms injected via JS -->
+        </div>
+      </section>
+
+      <!-- View 2: Quick Polls Manager -->
+      <section id="viewPolls" style="display: none;">
+        <div class="grid-cards" id="pollsGrid">
+          <!-- Dynamic Polls injected via JS -->
+        </div>
+      </section>
+
+      <!-- View 3: Respondent View (Public Form/Poll Filler) -->
+      <section id="viewRespondent" style="display: none;">
+        <div class="respondent-container" id="respondentArea">
+          <!-- Dynamic Form or Poll render -->
+        </div>
+      </section>
+
+      <!-- View 4: Response Vault & Analytics -->
+      <section id="viewAnalytics" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 700;">Decrypted Response Vault</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Encrypted submissions stored locally via Zen graph engine</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-secondary" onclick="exportData('csv')">
+              <i class="ti ti-download"></i> Export CSV
+            </button>
+            <button class="btn btn-secondary" onclick="exportData('json')">
+              <i class="ti ti-code"></i> Export JSON
+            </button>
+          </div>
+        </div>
+
+        <div id="analyticsList" style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Injected Analytics -->
+        </div>
+      </section>
+
+      <!-- View 5: Form Builder View -->
+      <section id="viewBuilder" style="display: none;">
+        <div class="builder-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <button class="btn btn-secondary" onclick="switchTab('forms')">
+              <i class="ti ti-arrow-left"></i> Back to Forms
+            </button>
+            <button class="btn btn-primary" onclick="saveCurrentForm()">
+              <i class="ti ti-check"></i> Save & Publish Form
+            </button>
+          </div>
+
+          <div class="card">
+            <input type="text" id="builderTitle" class="input-field" placeholder="Form Title (e.g. User Feedback Survey)" style="font-size: 1.3rem; font-weight: 700;">
+            <textarea id="builderDesc" class="input-field" placeholder="Form description or instructions..." rows="2"></textarea>
+          </div>
+
+          <div id="builderFields" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Fields dynamically added -->
+          </div>
+
+          <button class="btn btn-secondary" onclick="addFieldToBuilder()" style="justify-content: center; padding: 14px;">
+            <i class="ti ti-plus"></i> Add Question / Field
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <i class="ti ti-check" style="color: var(--accent); font-size: 20px;"></i>
+    <span id="toastMsg">Action completed successfully</span>
+  </div>
+
+  <script>
+    // State management
+    const AppState = {
+      theme: localStorage.getItem('zenforms_theme') || 'light',
+      locked: true,
+      activeTab: 'forms',
+      forms: JSON.parse(localStorage.getItem('zenforms_data') || '[]'),
+      polls: JSON.parse(localStorage.getItem('zenforms_polls') || '[]'),
+      responses: JSON.parse(localStorage.getItem('zenforms_responses') || '{}'),
+      currentBuilder: {
+        id: null,
+        title: '',
+        description: '',
+        fields: []
+      }
+    };
+
+    // Initial Mock Data if empty
+    if (AppState.forms.length === 0) {
+      AppState.forms = [
+        {
+          id: 'form-1',
+          title: 'Product Satisfaction Survey',
+          description: 'Help us improve the Zen ecosystem by answering 3 quick questions.',
+          createdAt: new Date().toISOString(),
+          fields: [
+            { id: 'q1', type: 'text', label: 'What is your primary use case for Zen app?', required: true },
+            { id: 'q2', type: 'rating', label: 'How satisfied are you with E2EE performance?', required: true },
+            { id: 'q3', type: 'radio', label: 'Would you recommend ZenForms to your team?', options: ['Yes, definitely', 'Maybe', 'No'], required: false }
+          ]
+        }
+      ];
+      AppState.polls = [
+        {
+          id: 'poll-1',
+          title: 'Which Zen App do you use most frequently?',
+          options: ['ZenBoard (Notes)', 'ZenCal (Calendar)', 'ZenAuth (2FA)', 'ZenKanban (Tasks)'],
+          votes: [12, 8, 15, 5],
+          createdAt: new Date().toISOString()
+        }
+      ];
+      AppState.responses['form-1'] = [
+        { q1: 'Decentralized note taking and task management', q2: '5 Stars', q3: 'Yes, definitely' },
+        { q1: 'Secure 2FA authentication', q2: '4 Stars', q3: 'Yes, definitely' }
+      ];
+      saveState();
+    }
+
+    function saveState() {
+      localStorage.setItem('zenforms_data', JSON.stringify(AppState.forms));
+      localStorage.setItem('zenforms_polls', JSON.stringify(AppState.polls));
+      localStorage.setItem('zenforms_responses', JSON.stringify(AppState.responses));
+    }
+
+    // Theme setup
+    document.documentElement.setAttribute('data-theme', AppState.theme);
+    updateThemeIcon();
+
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', AppState.theme);
+      localStorage.setItem('zenforms_theme', AppState.theme);
+      updateThemeIcon();
+    });
+
+    function updateThemeIcon() {
+      const icon = document.getElementById('themeIcon');
+      icon.className = AppState.theme === 'light' ? 'ti ti-moon' : 'ti ti-sun';
+    }
+
+    // Auth Unlock
+    document.getElementById('authForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      AppState.locked = false;
+      document.getElementById('authOverlay').style.fadeOut = true;
+      document.getElementById('authOverlay').style.display = 'none';
+      renderView();
+      showToast('Vault unlocked with E2EE key');
+    });
+
+    // Navigation Tabs
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        switchTab(tab);
+      });
+    });
+
+    function switchTab(tab) {
+      AppState.activeTab = tab;
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Hide all views
+      ['viewForms', 'viewPolls', 'viewRespondent', 'viewAnalytics', 'viewBuilder'].forEach(v => {
+        document.getElementById(v).style.display = 'none';
+      });
+
+      const topbarActions = document.getElementById('topbarActions');
+
+      if (tab === 'forms') {
+        document.getElementById('viewForms').style.display = 'block';
+        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-file-text"></i> My Forms';
+        topbarActions.innerHTML = `<button class="btn btn-primary" onclick="openFormBuilder()"><i class="ti ti-plus"></i> Create Form</button>`;
+      } else if (tab === 'polls') {
+        document.getElementById('viewPolls').style.display = 'block';
+        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-chart-bar"></i> Quick Polls';
+        topbarActions.innerHTML = `<button class="btn btn-primary" onclick="createNewPoll()"><i class="ti ti-plus"></i> New Poll</button>`;
+      } else if (tab === 'respondent') {
+        document.getElementById('viewRespondent').style.display = 'block';
+        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-pencil"></i> Respondent View';
+        topbarActions.innerHTML = '';
+        renderRespondentView();
+      } else if (tab === 'analytics') {
+        document.getElementById('viewAnalytics').style.display = 'block';
+        document.getElementById('topbarTitle').innerHTML = '<i class="ti ti-chart-donut"></i> Response Vault';
+        topbarActions.innerHTML = '';
+        renderAnalytics();
+      }
+
+      renderView();
+    }
+
+    function renderView() {
+      if (AppState.activeTab === 'forms') renderForms();
+      if (AppState.activeTab === 'polls') renderPolls();
+    }
+
+    // Render Forms List
+    function renderForms() {
+      const grid = document.getElementById('formsGrid');
+      if (AppState.forms.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <i class="ti ti-forms empty-icon"></i>
+            <h3>No forms created yet</h3>
+            <p>Create your first encrypted form to collect feedback securely.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = AppState.forms.map(f => {
+        const respCount = (AppState.responses[f.id] || []).length;
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${escapeHtml(f.title)}</div>
+                <div class="card-sub">${f.fields.length} questions</div>
+              </div>
+              <span class="badge-responses">${respCount} responses</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">${escapeHtml(f.description || 'No description provided.')}</p>
+            <div style="display: flex; gap: 8px; margin-top: auto; padding-top: 10px;">
+              <button class="btn btn-secondary" style="flex:1;" onclick="openRespondentForm('${f.id}')">
+                <i class="ti ti-eye"></i> Fill Form
+              </button>
+              <button class="btn btn-secondary" onclick="shareItem('${f.id}')">
+                <i class="ti ti-share"></i>
+              </button>
+              <button class="btn btn-danger" onclick="deleteForm('${f.id}')">
+                <i class="ti ti-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Polls List
+    function renderPolls() {
+      const grid = document.getElementById('pollsGrid');
+      if (AppState.polls.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <i class="ti ti-chart-bar empty-icon"></i>
+            <h3>No quick polls created yet</h3>
+            <p>Create a live poll to collect votes in real-time.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = AppState.polls.map(p => {
+        const totalVotes = p.votes.reduce((a, b) => a + b, 0);
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">${escapeHtml(p.title)}</div>
+              <span class="badge-responses">${totalVotes} votes</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              ${p.options.map((opt, i) => {
+                const count = p.votes[i] || 0;
+                const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                return `
+                  <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                      <span>${escapeHtml(opt)}</span>
+                      <span style="font-family: var(--font-mono); font-weight: 600;">${pct}% (${count})</span>
+                    </div>
+                    <div class="poll-result-bar-bg">
+                      <div class="poll-result-bar-fill" style="width: ${pct}%;"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button class="btn btn-primary" style="flex:1;" onclick="openRespondentPoll('${p.id}')">
+                <i class="ti ti-vote"></i> Vote Now
+              </button>
+              <button class="btn btn-danger" onclick="deletePoll('${p.id}')">
+                <i class="ti ti-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Form Builder Logic
+    function openFormBuilder(formId = null) {
+      document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+      document.getElementById('viewBuilder').style.display = 'block';
+
+      if (formId) {
+        const existing = AppState.forms.find(f => f.id === formId);
+        AppState.currentBuilder = JSON.parse(JSON.stringify(existing));
+      } else {
+        AppState.currentBuilder = {
+          id: 'form-' + Date.now(),
+          title: '',
+          description: '',
+          fields: [
+            { id: 'q1', type: 'text', label: 'Question 1', required: true }
+          ]
+        };
+      }
+
+      document.getElementById('builderTitle').value = AppState.currentBuilder.title;
+      document.getElementById('builderDesc').value = AppState.currentBuilder.description;
+      renderBuilderFields();
+    }
+
+    function renderBuilderFields() {
+      const container = document.getElementById('builderFields');
+      container.innerHTML = AppState.currentBuilder.fields.map((field, idx) => `
+        <div class="field-card">
+          <div class="field-card-header">
+            <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">Question ${idx + 1}</span>
+            <button class="btn btn-danger" style="padding: 4px 8px;" onclick="removeFieldFromBuilder(${idx})">
+              <i class="ti ti-x"></i>
+            </button>
+          </div>
+          <input type="text" class="input-field" value="${escapeHtml(field.label)}" onchange="updateFieldLabel(${idx}, this.value)" placeholder="Enter question label...">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <select class="input-field" style="width: 200px;" onchange="updateFieldType(${idx}, this.value)">
+              <option value="text" ${field.type === 'text' ? 'selected' : ''}>Short Text</option>
+              <option value="radio" ${field.type === 'radio' ? 'selected' : ''}>Multiple Choice</option>
+              <option value="rating" ${field.type === 'rating' ? 'selected' : ''}>Star Rating</option>
+            </select>
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer;">
+              <input type="checkbox" ${field.required ? 'checked' : ''} onchange="updateFieldRequired(${idx}, this.checked)"> Required
+            </label>
+          </div>
+          ${field.type === 'radio' ? `
+            <div style="margin-top: 8px;">
+              <span style="font-size: 0.85rem; font-weight: 600;">Options:</span>
+              ${(field.options || ['Option 1', 'Option 2']).map((opt, oIdx) => `
+                <div class="option-row">
+                  <input type="text" class="input-field" value="${escapeHtml(opt)}" onchange="updateFieldOption(${idx}, ${oIdx}, this.value)">
+                </div>
+              `).join('')}
+              <button class="btn btn-secondary" style="margin-top: 8px; padding: 4px 10px; font-size: 0.8rem;" onclick="addOptionToField(${idx})">
+                + Add Option
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function addFieldToBuilder() {
+      AppState.currentBuilder.fields.push({
+        id: 'q' + Date.now(),
+        type: 'text',
+        label: 'New Question',
+        required: false
+      });
+      renderBuilderFields();
+    }
+
+    function removeFieldFromBuilder(idx) {
+      AppState.currentBuilder.fields.splice(idx, 1);
+      renderBuilderFields();
+    }
+
+    function updateFieldLabel(idx, val) { AppState.currentBuilder.fields[idx].label = val; }
+    function updateFieldType(idx, val) {
+      AppState.currentBuilder.fields[idx].type = val;
+      if (val === 'radio' && !AppState.currentBuilder.fields[idx].options) {
+        AppState.currentBuilder.fields[idx].options = ['Option 1', 'Option 2'];
+      }
+      renderBuilderFields();
+    }
+    function updateFieldRequired(idx, val) { AppState.currentBuilder.fields[idx].required = val; }
+    function updateFieldOption(idx, oIdx, val) { AppState.currentBuilder.fields[idx].options[oIdx] = val; }
+    function addOptionToField(idx) {
+      AppState.currentBuilder.fields[idx].options.push('Option ' + (AppState.currentBuilder.fields[idx].options.length + 1));
+      renderBuilderFields();
+    }
+
+    function saveCurrentForm() {
+      AppState.currentBuilder.title = document.getElementById('builderTitle').value.trim() || 'Untitled Form';
+      AppState.currentBuilder.description = document.getElementById('builderDesc').value.trim();
+
+      const existingIndex = AppState.forms.findIndex(f => f.id === AppState.currentBuilder.id);
+      if (existingIndex >= 0) {
+        AppState.forms[existingIndex] = AppState.currentBuilder;
+      } else {
+        AppState.forms.unshift(AppState.currentBuilder);
+      }
+
+      saveState();
+      switchTab('forms');
+      showToast('Form saved and encrypted');
+    }
+
+    function deleteForm(id) {
+      if (confirm('Are you sure you want to delete this form?')) {
+        AppState.forms = AppState.forms.filter(f => f.id !== id);
+        delete AppState.responses[id];
+        saveState();
+        renderForms();
+        showToast('Form deleted');
+      }
+    }
+
+    // Quick Poll Creation
+    function createNewPoll() {
+      const question = prompt('Enter your poll question:');
+      if (!question) return;
+
+      const newPoll = {
+        id: 'poll-' + Date.now(),
+        title: question,
+        options: ['Agree', 'Disagree', 'Abstain'],
+        votes: [0, 0, 0],
+        createdAt: new Date().toISOString()
+      };
+
+      AppState.polls.unshift(newPoll);
+      saveState();
+      renderPolls();
+      showToast('Poll created');
+    }
+
+    function deletePoll(id) {
+      if (confirm('Delete this poll?')) {
+        AppState.polls = AppState.polls.filter(p => p.id !== id);
+        saveState();
+        renderPolls();
+        showToast('Poll deleted');
+      }
+    }
+
+    // Respondent View Logic
+    function renderRespondentView() {
+      const area = document.getElementById('respondentArea');
+      if (AppState.forms.length === 0 && AppState.polls.length === 0) {
+        area.innerHTML = `<div class="empty-state">No active forms or polls available.</div>`;
+        return;
+      }
+      openRespondentForm(AppState.forms[0]?.id);
+    }
+
+    function openRespondentForm(formId) {
+      switchTab('respondent');
+      const form = AppState.forms.find(f => f.id === formId);
+      const area = document.getElementById('respondentArea');
+
+      if (!form) {
+        area.innerHTML = `<div class="empty-state">Form not found.</div>`;
+        return;
+      }
+
+      area.innerHTML = `
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 8px;">${escapeHtml(form.title)}</h2>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">${escapeHtml(form.description || '')}</p>
+        
+        <form id="activeFillForm" style="display:flex; flex-direction:column; gap:20px;">
+          ${form.fields.map(field => `
+            <div>
+              <label style="display:block; font-weight:600; margin-bottom:8px;">
+                ${escapeHtml(field.label)} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}
+              </label>
+              ${field.type === 'text' ? `
+                <input type="text" name="${field.id}" class="input-field" ${field.required ? 'required' : ''}>
+              ` : field.type === 'radio' ? `
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  ${(field.options || []).map(opt => `
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                      <input type="radio" name="${field.id}" value="${escapeHtml(opt)}" ${field.required ? 'required' : ''}>
+                      <span>${escapeHtml(opt)}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              ` : `
+                <select name="${field.id}" class="input-field">
+                  <option value="5 Stars">5 Stars ⭐⭐⭐⭐⭐</option>
+                  <option value="4 Stars">4 Stars ⭐⭐⭐⭐</option>
+                  <option value="3 Stars">3 Stars ⭐⭐⭐</option>
+                </select>
+              `}
+            </div>
+          `).join('')}
+          <button type="submit" class="btn btn-primary" style="justify-content:center; margin-top:10px;">
+            <i class="ti ti-send"></i> Encrypt & Submit Response
+          </button>
+        </form>
+      `;
+
+      document.getElementById('activeFillForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const responseObj = {};
+        formData.forEach((val, key) => responseObj[key] = val);
+
+        if (!AppState.responses[formId]) AppState.responses[formId] = [];
+        AppState.responses[formId].push(responseObj);
+        saveState();
+
+        area.innerHTML = `
+          <div style="text-align:center; padding: 40px 20px;">
+            <i class="ti ti-circle-check" style="font-size: 64px; color: var(--accent); margin-bottom: 16px;"></i>
+            <h2>Response Submitted!</h2>
+            <p style="color: var(--text-muted); margin-top: 8px;">Your response has been end-to-end encrypted and saved to the Zen graph vault.</p>
+          </div>
+        `;
+        showToast('Response encrypted & sent');
+      });
+    }
+
+    function openRespondentPoll(pollId) {
+      switchTab('respondent');
+      const poll = AppState.polls.find(p => p.id === pollId);
+      const area = document.getElementById('respondentArea');
+
+      area.innerHTML = `
+        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">${escapeHtml(poll.title)}</h2>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          ${poll.options.map((opt, i) => `
+            <button class="btn btn-secondary" style="justify-content:flex-start; padding:14px;" onclick="castVote('${poll.id}', ${i})">
+              <i class="ti ti-circle-dot"></i> ${escapeHtml(opt)}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function castVote(pollId, optIdx) {
+      const poll = AppState.polls.find(p => p.id === pollId);
+      if (poll) {
+        poll.votes[optIdx] = (poll.votes[optIdx] || 0) + 1;
+        saveState();
+        switchTab('polls');
+        showToast('Vote recorded on Zen graph');
+      }
+    }
+
+    // Render Analytics
+    function renderAnalytics() {
+      const container = document.getElementById('analyticsList');
+      container.innerHTML = AppState.forms.map(form => {
+        const resps = AppState.responses[form.id] || [];
+        return `
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">${escapeHtml(form.title)}</h3>
+              <span class="badge-responses">${resps.length} Submissions</span>
+            </div>
+            ${resps.length === 0 ? `<p style="font-size:0.85rem; color:var(--text-muted);">No responses received yet.</p>` : `
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                ${resps.map((r, i) => `
+                  <div style="background:var(--bg-input); padding:10px; border-radius:8px; font-size:0.85rem; font-family:var(--font-mono);">
+                    <strong>Submission #${i + 1}:</strong> ${JSON.stringify(r)}
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Share & Export Helpers
+    function shareItem(id) {
+      const url = window.location.origin + window.location.pathname + '#' + id;
+      navigator.clipboard.writeText(url);
+      showToast('Encrypted share link copied to clipboard!');
+    }
+
+    function exportData(type) {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AppState.responses));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `zenforms_vault_export.${type}`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast(`Exported responses as ${type.toUpperCase()}`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+
+</html>

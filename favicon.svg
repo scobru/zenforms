@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="zenforms-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#zenforms-grad)" />
+  <path d="M140 120h232c11 0 20 9 20 20v232c0 11-9 20-20 20H140c-11 0-20-9-20-20V140c0-11 9-20 20-20z" fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M170 180h172M170 240h172M170 300h100" stroke="#ffffff" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="330" cy="300" r="18" fill="#ffffff"/>
+  <path d="M322 300l6 6 12-12" stroke="#059669" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
