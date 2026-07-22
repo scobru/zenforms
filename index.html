@@ -755,8 +755,9 @@
       zen.get('~' + pair.pub).get('zenforms_polls').map().on((data, soul) => {
         if (data) {
           try {
-            const idx = AppState.polls.findIndex(p => p.id === data.id);
+            const idx = AppState.polls.findIndex(p => p.soul === soul);
             const parsed = {
+               soul,
                id: data.id,
                title: data.title,
                options: typeof data.options === 'string' ? JSON.parse(data.options) : data.options,
@@ -765,11 +766,15 @@
             };
             if (idx > -1) AppState.polls[idx] = parsed;
             else AppState.polls.push(parsed);
-            
+
             // Re-sort polls by createdAt
             AppState.polls.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
             if (AppState.activeTab === 'polls') renderPolls();
           } catch(err) {}
+        } else {
+          const idx = AppState.polls.findIndex(p => p.soul === soul);
+          if (idx > -1) AppState.polls.splice(idx, 1);
+          if (AppState.activeTab === 'polls') renderPolls();
         }
       });
 
@@ -908,13 +913,13 @@
             </div>
             <p style="font-size: 0.9rem; color: var(--text-secondary);">${escapeHtml(f.description || 'No description provided.')}</p>
             <div style="display: flex; gap: 8px; margin-top: auto; padding-top: 10px;">
-              <button class="btn btn-secondary" style="flex:1;" onclick="openRespondentForm('${f.id}')">
+              <button class="btn btn-secondary" style="flex:1;" onclick="openRespondentForm('${escapeJs(f.id)}')">
                 <i class="ti ti-eye"></i> Fill Form
               </button>
-              <button class="btn btn-secondary" onclick="shareItem('${f.id}')">
+              <button class="btn btn-secondary" onclick="shareItem('${escapeJs(f.id)}')">
                 <i class="ti ti-share"></i>
               </button>
-              <button class="btn btn-danger" onclick="deleteForm('${f.id}')">
+              <button class="btn btn-danger" onclick="deleteForm('${escapeJs(f.id)}')">
                 <i class="ti ti-trash"></i>
               </button>
             </div>
@@ -963,10 +968,10 @@
               }).join('')}
             </div>
             <div style="display: flex; gap: 8px; margin-top: 10px;">
-              <button class="btn btn-primary" style="flex:1;" onclick="openRespondentPoll('${p.id}')">
+              <button class="btn btn-primary" style="flex:1;" onclick="openRespondentPoll('${escapeJs(p.id)}')">
                 <i class="ti ti-vote"></i> Vote Now
               </button>
-              <button class="btn btn-danger" onclick="deletePoll('${p.id}')">
+              <button class="btn btn-danger" onclick="deletePoll('${escapeJs(p.id)}')">
                 <i class="ti ti-trash"></i>
               </button>
             </div>
@@ -1038,13 +1043,15 @@
       `).join('');
     }
 
-    window.addFieldToBuilder = function() {
-      AppState.currentBuilder.fields.push({
+    window.addFieldToBuilder = function(type) {
+      const field = {
         id: 'q' + Date.now(),
-        type: 'text',
+        type: type || 'text',
         label: 'New Question',
         required: false
-      });
+      };
+      if (field.type === 'radio') field.options = ['Option 1', 'Option 2'];
+      AppState.currentBuilder.fields.push(field);
       renderBuilderFields();
     };
 
@@ -1132,8 +1139,11 @@
 
     window.deletePoll = function(id) {
       if (confirm('Delete this poll?')) {
-        renderPolls();
-        showToast('Poll deleted');
+        if (pair) {
+          zen.get('~' + pair.pub).get('zenforms_polls').get(id).put(null, (ack) => {
+            if (!ack.err) showToast('Poll deleted');
+          }, { authenticator: pair });
+        }
       }
     };
 
@@ -1312,6 +1322,10 @@
 
     function escapeHtml(str) {
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function escapeJs(str) {
+      return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
   </script>
 </body>
