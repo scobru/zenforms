@@ -505,6 +505,107 @@
       animation: spin 1s linear infinite;
       display: inline-block;
     }
+
+    /* Mobile Navigation & Responsive Styles */
+    .sidebar-toggle {
+      display: none;
+    }
+
+    .hamburger-close {
+      display: none;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 199;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.show {
+      display: block;
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar-toggle {
+        display: flex;
+      }
+
+      .hamburger-close {
+        display: flex;
+      }
+
+      .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: none;
+      }
+
+      .app-sidebar.open {
+        transform: translateX(0);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.25);
+      }
+
+      .topbar {
+        padding: 0 12px;
+        gap: 8px;
+      }
+
+      .content-area {
+        padding: 16px;
+      }
+
+      .grid-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .btn {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+      }
+
+      .topbar-title {
+        font-size: 1rem;
+      }
+
+      .field-card-header {
+        flex-wrap: wrap;
+      }
+
+      .builder-container {
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .content-area {
+        padding: 12px;
+      }
+
+      .topbar {
+        padding: 0 10px;
+        height: 56px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .respondent-container {
+        padding: 20px;
+        margin: 12px;
+      }
+    }
   </style>
 </head>
 
@@ -529,16 +630,22 @@
   </div>
 
   <!-- Sidebar -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <nav class="app-sidebar">
-    <a href="#" class="brand">
-      <div class="brand-logo">
-        <i class="ti ti-forms"></i>
-      </div>
-      <div>
-        <div class="brand-text">ZenForms</div>
-        <span class="brand-badge">ZEN P2P</span>
-      </div>
-    </a>
+    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+      <a href="#" class="brand">
+        <div class="brand-logo">
+          <i class="ti ti-forms"></i>
+        </div>
+        <div>
+          <div class="brand-text">ZenForms</div>
+          <span class="brand-badge">ZEN P2P</span>
+        </div>
+      </a>
+      <button class="theme-toggle hamburger-close" onclick="toggleSidebar()" title="Close Menu">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
 
     <ul class="nav-list">
       <li>
@@ -571,9 +678,14 @@
   <!-- Main Content -->
   <main class="app-main">
     <header class="topbar">
-      <h1 class="topbar-title" id="topbarTitle">
-        <i class="ti ti-file-text"></i> My Forms
-      </h1>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="theme-toggle sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Menu">
+          <i class="ti ti-menu-2"></i>
+        </button>
+        <h1 class="topbar-title" id="topbarTitle">
+          <i class="ti ti-file-text"></i> My Forms
+        </h1>
+      </div>
       <div id="topbarActions" style="display:flex; gap:10px;"></div>
     </header>
 
@@ -844,8 +956,19 @@
       });
     });
 
+    window.toggleSidebar = function() {
+      const sidebar = document.querySelector('.app-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar) sidebar.classList.toggle('open');
+      if (overlay) overlay.classList.toggle('show');
+    };
+
     window.switchTab = function(tab) {
       AppState.activeTab = tab;
+      if (window.innerWidth <= 768) {
+        document.querySelector('.app-sidebar')?.classList.remove('open');
+        document.getElementById('sidebar-overlay')?.classList.remove('show');
+      }
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
       if (activeBtn) activeBtn.classList.add('active');
