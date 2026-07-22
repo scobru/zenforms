@@ -547,9 +547,14 @@
       <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
         v1.0.0 • ZEN P2P
       </span>
-      <button class="theme-toggle" id="themeBtn" title="Toggle Theme">
-        <i class="ti ti-moon" id="themeIcon"></i>
-      </button>
+      <div style="display:flex; gap: 8px;">
+        <button class="theme-toggle" onclick="window.logout()" title="Lock Vault">
+          <i class="ti ti-lock"></i>
+        </button>
+        <button class="theme-toggle" id="themeBtn" title="Toggle Theme">
+          <i class="ti ti-moon" id="themeIcon"></i>
+        </button>
+      </div>
     </div>
   </nav>
 
@@ -693,13 +698,13 @@
     });
 
     async function login() {
-      const u = document.getElementById('user-input').value || sessionStorage.getItem('zenforms_user');
-      const p = document.getElementById('pass-input').value || sessionStorage.getItem('zenforms_pass');
+      const u = document.getElementById('user-input').value || sessionStorage.getItem('zen_user');
+      const p = document.getElementById('pass-input').value || sessionStorage.getItem('zen_pass');
       if (!u || !p) return;
 
       pair = await ZEN.pair(null, { seed: u + p });
-      sessionStorage.setItem('zenforms_user', u);
-      sessionStorage.setItem('zenforms_pass', p);
+      sessionStorage.setItem('zen_user', u);
+      sessionStorage.setItem('zen_pass', p);
       AppState.locked = false;
       document.getElementById('authOverlay').style.display = 'none';
 
@@ -724,8 +729,56 @@
         syncFormsFromMap();
       });
 
+      zen.get('~' + pair.pub).get('zenforms_polls').map().on((data, soul) => {
+        if (data) {
+          try {
+            const idx = AppState.polls.findIndex(p => p.id === data.id);
+            const parsed = {
+               id: data.id,
+               title: data.title,
+               options: typeof data.options === 'string' ? JSON.parse(data.options) : data.options,
+               votes: typeof data.votes === 'string' ? JSON.parse(data.votes) : data.votes,
+               createdAt: data.createdAt
+            };
+            if (idx > -1) AppState.polls[idx] = parsed;
+            else AppState.polls.push(parsed);
+            
+            // Re-sort polls by createdAt
+            AppState.polls.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            if (AppState.activeTab === 'polls') renderPolls();
+          } catch(err) {}
+        }
+      });
+
+      zen.get('~' + pair.pub).get('zenforms_responses').map().on((data, soul) => {
+        if (data) {
+          try {
+             if (!AppState.responses[data.formId]) AppState.responses[data.formId] = [];
+             // avoid duplicates
+             const exists = AppState.responses[data.formId].find(r => r.id === data.id);
+             if (!exists) {
+               AppState.responses[data.formId].push({
+                 id: data.id,
+                 data: typeof data.data === 'string' ? JSON.parse(data.data) : data.data
+               });
+             }
+          } catch(err) {}
+        }
+      });
+
       showToast('Connected to ZEN P2P network');
     }
+
+    // Auto-login
+    if (sessionStorage.getItem('zen_user') && sessionStorage.getItem('zen_pass')) {
+      login();
+    }
+
+    window.logout = function() {
+      sessionStorage.removeItem('zen_user');
+      sessionStorage.removeItem('zen_pass');
+      window.location.reload();
+    };
 
     function syncFormsFromMap() {
       AppState.forms = Object.values(formsMap).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
@@ -1028,25 +1081,34 @@
 
     // Quick Poll Creation
     window.createNewPoll = function() {
-      const question = prompt('Enter your poll question:');
-      if (!question) return;
+      const title = prompt('Enter your poll question:');
+      const optionsStr = prompt('Enter options (comma-separated):');
+      if (!title || !optionsStr) return;
+      const options = optionsStr.split(',').map(s => s.trim());
 
       const newPoll = {
         id: 'poll-' + Date.now(),
-        title: question,
-        options: ['Agree', 'Disagree', 'Abstain'],
-        votes: [0, 0, 0],
+        title: title,
+        options: options,
+        votes: Array(options.length).fill(0),
         createdAt: new Date().toISOString()
       };
+      
+      if (pair) {
+        zen.get('~' + pair.pub).get('zenforms_polls').get(newPoll.id).put({
+          id: newPoll.id,
+          title: newPoll.title,
+          options: JSON.stringify(newPoll.options),
+          votes: JSON.stringify(newPoll.votes),
+          createdAt: newPoll.createdAt
+        });
+      }
 
-      AppState.polls.unshift(newPoll);
-      renderPolls();
       showToast('Poll created');
     };
 
     window.deletePoll = function(id) {
       if (confirm('Delete this poll?')) {
-        AppState.polls = AppState.polls.filter(p => p.id !== id);
         renderPolls();
         showToast('Poll deleted');
       }
@@ -1115,8 +1177,14 @@
         const responseObj = {};
         formData.forEach((val, key) => responseObj[key] = val);
 
-        if (!AppState.responses[formId]) AppState.responses[formId] = [];
-        AppState.responses[formId].push(responseObj);
+        const respId = 'resp-' + Date.now();
+        if (pair) {
+          zen.get('~' + pair.pub).get('zenforms_responses').get(respId).put({
+            id: respId,
+            formId: formId,
+            data: JSON.stringify(responseObj)
+          });
+        }
 
         area.innerHTML = `
           <div style="text-align:center; padding: 40px 20px;">
@@ -1152,6 +1220,15 @@
       const poll = AppState.polls.find(p => p.id === pollId);
       if (poll) {
         poll.votes[optIdx] = (poll.votes[optIdx] || 0) + 1;
+        if (pair) {
+          zen.get('~' + pair.pub).get('zenforms_polls').get(pollId).put({
+            id: poll.id,
+            title: poll.title,
+            options: JSON.stringify(poll.options),
+            votes: JSON.stringify(poll.votes),
+            createdAt: poll.createdAt
+          });
+        }
         window.switchTab('polls');
         showToast('Vote recorded on Zen graph');
       }
